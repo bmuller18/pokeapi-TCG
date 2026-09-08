@@ -1,7 +1,10 @@
 from flask import Blueprint, render_template, request
 import requests
 
-from backend.services.pokemon_service import get_pokemon_by_id
+from backend.services.pokemon_service import (
+    get_pokemon_by_id,
+    get_first_150_pokemon
+)
 
 
 pokemon_bp = Blueprint("pokemon", __name__)
@@ -13,6 +16,10 @@ def index():
     pokemon = None
     error = None
 
+    # Cargar los primeros 150
+    pokemon_list = get_first_150_pokemon()
+
+    # Buscar Pokémon
     if request.method == "POST":
 
         pokemon_id = request.form.get("pokemon_id", "").strip()
@@ -30,12 +37,12 @@ def index():
             except requests.exceptions.HTTPError:
                 error = f"No existe un Pokémon con el ID {pokemon_id}."
 
-            except requests.exceptions.RequestException as e:
-                print(f"Error de conexión: {e}")
+            except requests.exceptions.RequestException:
                 error = "No se pudo conectar con PokeAPI."
 
     return render_template(
         "pokemon.html",
         pokemon=pokemon,
+        pokemon_list=pokemon_list,
         error=error
     )

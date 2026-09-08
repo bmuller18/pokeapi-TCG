@@ -3,7 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Pokémon Explorer</title>
 
@@ -13,116 +17,183 @@
     >
 </head>
 
+
 <body>
 
-    <main class="container">
-
-        <header class="header">
-            <h1>Pokémon Explorer</h1>
-            <p>Busca un Pokémon por su ID</p>
-        </header>
+<main class="container">
 
 
-        <form method="POST" class="search-box">
+    <!-- HEADER -->
 
-            <input
-                type="number"
-                name="pokemon_id"
-                placeholder="Ej: 25"
-                min="1"
-                required
-            >
+    <header class="header">
 
-            <button type="submit">
-                Buscar
-            </button>
+        <h1>Pokémon Explorer</h1>
 
-        </form>
+        <p>
+            Explora los primeros 150 Pokémon
+        </p>
+
+    </header>
 
 
-        {% if error %}
 
-            <div class="error">
-                {{ error }}
+    <!-- SEARCH -->
+
+    <form method="POST" class="search-box">
+
+        <input
+            type="number"
+            name="pokemon_id"
+            placeholder="Buscar por ID..."
+            min="1"
+            max="150"
+        >
+
+        <button type="submit">
+            Buscar
+        </button>
+
+    </form>
+
+
+
+    <!-- ERROR -->
+
+    {% if error %}
+
+        <div class="error">
+            {{ error }}
+        </div>
+
+    {% endif %}
+
+
+
+    <!-- SEARCH RESULT -->
+
+    {% if pokemon %}
+
+        <section class="pokemon-result">
+
+            <div class="pokemon-result-image">
+
+                <img
+                    src="{{ pokemon.sprites.other['official-artwork'].front_default }}"
+                    alt="{{ pokemon.name }}"
+                >
+
             </div>
 
-        {% endif %}
+
+            <div class="pokemon-result-info">
+
+                <span class="pokemon-id">
+                    #{{ "%03d"|format(pokemon.id) }}
+                </span>
+
+                <h2>
+                    {{ pokemon.name|capitalize }}
+                </h2>
 
 
-        {% if pokemon %}
+                <div class="types">
 
-            <section class="pokemon-card">
+                    {% for type in pokemon.types %}
 
-                <div class="pokemon-image">
+                        <span class="type">
+                            {{ type.type.name|capitalize }}
+                        </span>
 
-                    <img
-                        src="{{ pokemon.sprites.other['official-artwork'].front_default }}"
-                        alt="{{ pokemon.name }}"
-                    >
+                    {% endfor %}
 
                 </div>
 
 
-                <div class="pokemon-info">
+                <div class="stats">
 
-                    <span class="pokemon-id">
-                        #{{ pokemon.id }}
+                    <div class="stat">
+
+                        <span>Altura</span>
+
+                        <strong>
+                            {{ pokemon.height / 10 }} m
+                        </strong>
+
+                    </div>
+
+
+                    <div class="stat">
+
+                        <span>Peso</span>
+
+                        <strong>
+                            {{ pokemon.weight / 10 }} kg
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    {% endif %}
+
+
+
+    <!-- POKEMON PANEL -->
+
+    <section class="pokemon-section">
+
+        <div class="section-header">
+
+            <h2>
+                Primeros 150 Pokémon
+            </h2>
+
+            <span>
+                {{ pokemon_list|length }} Pokémon
+            </span>
+
+        </div>
+
+
+        <div class="pokemon-grid">
+
+            {% for item in pokemon_list %}
+
+                <a
+                    href="?id={{ item.id }}"
+                    class="pokemon-card"
+                >
+
+                    <span class="card-number">
+                        #{{ "%03d"|format(item.id) }}
                     </span>
 
-                    <h2>
-                        {{ pokemon.name|capitalize }}
-                    </h2>
+
+                    <img
+                        src="{{ item.image }}"
+                        alt="{{ item.name }}"
+                        loading="lazy"
+                    >
 
 
-                    <div class="types">
+                    <h3>
+                        {{ item.name|capitalize }}
+                    </h3>
 
-                        {% for type in pokemon.types %}
+                </a>
 
-                            <span class="type">
-                                {{ type.type.name|capitalize }}
-                            </span>
+            {% endfor %}
 
-                        {% endfor %}
+        </div>
 
-                    </div>
-
-
-                    <div class="stats">
-
-                        <div class="stat">
-                            <span>Altura</span>
-                            <strong>{{ pokemon.height / 10 }} m</strong>
-                        </div>
-
-                        <div class="stat">
-                            <span>Peso</span>
-                            <strong>{{ pokemon.weight / 10 }} kg</strong>
-                        </div>
-
-                    </div>
+    </section>
 
 
-                    <h3>Habilidades</h3>
-
-                    <div class="abilities">
-
-                        {% for ability in pokemon.abilities %}
-
-                            <span class="ability">
-                                {{ ability.ability.name|capitalize }}
-                            </span>
-
-                        {% endfor %}
-
-                    </div>
-
-                </div>
-
-            </section>
-
-        {% endif %}
-
-    </main>
+</main>
 
 </body>
 
