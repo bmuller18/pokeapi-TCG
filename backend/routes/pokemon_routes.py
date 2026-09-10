@@ -3,7 +3,8 @@ import requests
 
 from backend.services.pokemon_service import (
     get_pokemon_by_id,
-    get_first_150_pokemon
+    get_first_150_pokemon,
+    get_all_pokemon
 )
 
 
@@ -16,8 +17,8 @@ def index():
     pokemon = None
     error = None
 
-    # Cargar los primeros 150
-    pokemon_list = get_first_150_pokemon()
+    # Cargar todos los Pokémon
+    pokemon_list = get_all_pokemon()
 
     # Buscar Pokémon
     if request.method == "POST":

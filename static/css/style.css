@@ -50,6 +50,62 @@ body {
     font-size: 1rem;
 }
 
+/* REGION NAVIGATION */
+.region-nav {
+    margin: 20px 0 30px;
+    text-align: center;
+}
+
+.region-nav ul {
+    display: inline-flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.region-nav li {
+    margin: 0;
+}
+
+.region-nav a {
+    padding: 10px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-shadow:
+        inset 3px 3px 7px var(--dark),
+        inset -3px -3px 7px var(--light);
+    background: var(--background);
+    color: var(--text);
+}
+
+.region-nav a:hover {
+    box-shadow:
+        4px 4px 8px var(--dark),
+        -4px -4px 8px var(--light);
+    transform: translateY(-2px);
+}
+
+.region-nav a.active {
+    box-shadow:
+        6px 6px 12px var(--dark),
+        -6px -6px 12px var(--light);
+    background: var(--accent);
+    color: white;
+}
+
+.region-nav a.active:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        8px 8px 16px var(--dark),
+        -8px -8px 16px var(--light);
+}
+
 /* SEARCH */
 
 .search-box {

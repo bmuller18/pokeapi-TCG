@@ -30,8 +30,24 @@
         <h1>Pokémon Explorer</h1>
 
         <p>
-            Explora los primeros 150 Pokémon
+            Explora los Pokémon por región
         </p>
+
+        <!-- REGION NAVIGATION -->
+        <nav class="region-nav">
+            <ul>
+                <li>
+                    <a href="/" class="{% if selected_region is none %}active{% endif %}">Todas las regiones</a>
+                </li>
+                {% for gen in generations %}
+                <li>
+                    <a href="?region={{ gen.id }}" class="{% if selected_region == gen.id %}active{% endif %}">
+                        {{ gen.region }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
 
     </header>
 
@@ -46,7 +62,6 @@
             name="pokemon_id"
             placeholder="Buscar por ID..."
             min="1"
-            max="150"
         >
 
         <button type="submit">
@@ -149,7 +164,15 @@
         <div class="section-header">
 
             <h2>
-                Primeros 150 Pokémon
+                {% if selected_region is not none %}
+                    {% for gen in generations %}
+                        {% if gen.id == selected_region %}
+                            Pokémon de {{ gen.region }}
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    Todos los Pokémon
+                {% endif %}
             </h2>
 
             <span>
@@ -164,7 +187,7 @@
             {% for item in pokemon_list %}
 
                 <a
-                    href="?id={{ item.id }}"
+                    href="?id={{ item.id }}{% if selected_region is not none %}&region={{ selected_region }}{% endif %}"
                     class="pokemon-card"
                 >
 
