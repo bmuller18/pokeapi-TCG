@@ -1,12 +1,11 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, session
 import requests
 
 from backend.services.pokemon_service import (
     get_pokemon_by_id,
-    get_first_150_pokemon,
-    get_all_pokemon,
-    get_generations,
-    get_pokemon_by_generation
+    get_random_pokemon_ids,
+    get_pokemon_by_ids,
+    get_pokemon_species
 )
 
 
@@ -18,56 +17,94 @@ def index():
 
     pokemon = None
     error = None
+    random_pokemons = None
+    show_random = False
 
-    # Get all generations for the navigation menu
-    generations = get_generations()
+    # Initialize discovered regions in session if not present
+    if 'discovered_regions' not in session:
+        session['discovered_regions'] = []
 
-    # Get selected region from query parameters (default to None for all)
-    selected_region = request.args.get('region', type=int)
-
-    # Get Pokémon list based on selection
-    if selected_region is not None:
-        # Validate that the region ID exists in our generations
-        valid_region_ids = [g['id'] for g in generations]
-        if selected_region in valid_region_ids:
-            pokemon_list = get_pokemon_by_generation(selected_region)
-        else:
-            # Invalid region, fall back to all Pokémon
-            pokemon_list = get_all_pokemon()
-            selected_region = None
-    else:
-        # No region selected, show all Pokémon
-        pokemon_list = get_all_pokemon()
-
-    # Limit to first 1025 Pokémon (ID ≤ 1025)
-    pokemon_list = [pokemon for pokemon in pokemon_list if pokemon['id'] <= 1025]
-
-    # Buscar Pokémon
+    # Handle form submission
     if request.method == "POST":
+        action = request.form.get("action")
 
-        pokemon_id = request.form.get("pokemon_id", "").strip()
-
-        if not pokemon_id:
-            error = "Introduce un ID de Pokémon."
-
-        elif not pokemon_id.isdigit():
-            error = "El ID debe ser un número."
-
-        else:
+        if action == "random":
+            # Show 3 random Pokémon with their region information
             try:
-                pokemon = get_pokemon_by_id(pokemon_id)
+                random_ids = get_random_pokemon_ids(3)
+                random_pokemons_data = get_pokemon_by_ids(random_ids)
 
-            except requests.exceptions.HTTPError:
-                error = f"No existe un Pokémon con el ID {pokemon_id}."
+                # Enhance each Pokémon with region information and add to discovered regions
+                random_pokemons = []
+                newly_discovered_regions = set()  # Use set to avoid duplicates within the same batch
+                for pokemon_data in random_pokemons_data:
+                    try:
+                        # Get species data to find generation/region
+                        species_data = get_pokemon_species(pokemon_data["id"])
+                        generation_name = species_data["generation"]["name"]  # e.g., "generation-i"
 
+                        # Map generation to region name
+                        generation_to_region = {
+                            "generation-i": "Kanto",
+                            "generation-ii": "Johto",
+                            "generation-iii": "Hoenn",
+                            "generation-iv": "Sinnoh",
+                            "generation-v": "Unova",
+                            "generation-vi": "Kalos",
+                            "generation-vii": "Alola",
+                            "generation-viii": "Galar",
+                            "generation-ix": "Paldea"
+                        }
+                        region = generation_to_region.get(generation_name, "Desconocida")
+
+                        # Add region information to pokemon data
+                        pokemon_data["region"] = region
+                        random_pokemons.append(pokemon_data)
+
+                        # Add region to discovered regions if not already there and not unknown
+                        if region != "Desconocida" and region not in session['discovered_regions']:
+                            newly_discovered_regions.add(region)
+                    except Exception:
+                        # If we can't get species data, still include the pokemon without region
+                        pokemon_data["region"] = "Desconocida"
+                        random_pokemons.append(pokemon_data)
+
+                # Update discovered regions in session
+                session['discovered_regions'].extend(list(newly_discovered_regions))
+                # Mark session as modified to ensure it's saved
+                session.modified = True
+
+                show_random = True
             except requests.exceptions.RequestException:
                 error = "No se pudo conectar con PokeAPI."
+        else:
+            # Regular search by ID
+            pokemon_id = request.form.get("pokemon_id", "").strip()
+
+            if not pokemon_id:
+                error = "Introduce un ID de Pokémon."
+
+            elif not pokemon_id.isdigit():
+                error = "El ID debe ser un número."
+
+            else:
+                try:
+                    pokemon = get_pokemon_by_id(pokemon_id)
+
+                except requests.exceptions.HTTPError:
+                    error = f"No existe un Pokémon con el ID {pokemon_id}."
+
+                except requests.exceptions.RequestException:
+                    error = "No se pudo conectar con PokeAPI."
+
+    # Get discovered regions from session for template
+    discovered_regions = session.get('discovered_regions', [])
 
     return render_template(
         "pokemon.html",
         pokemon=pokemon,
-        pokemon_list=pokemon_list,
-        generations=generations,
-        selected_region=selected_region,
+        random_pokemons=random_pokemons,
+        show_random=show_random,
+        discovered_regions=discovered_regions,
         error=error
     )

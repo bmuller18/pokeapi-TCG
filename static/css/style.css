@@ -175,6 +175,44 @@ body {
         inset -4px -4px 8px var(--light);
 }
 
+.search-box .random-btn {
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    border: none;
+    border-radius: 15px;
+    padding: 15px 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    box-shadow:
+        6px 6px 12px var(--dark),
+        -6px -6px 12px var(--light);
+    margin-left: 10px;
+}
+
+.search-box .random-btn:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        8px 8px 16px var(--dark),
+        -8px -8px 16px var(--light);
+}
+
+.search-box .random-btn:active {
+    transform: translateY(0);
+    box-shadow:
+        inset 4px 4px 8px var(--dark),
+        inset -4px -4px 8px var(--light);
+}
+
+@media (max-width: 700px) {
+    .search-box .random-btn {
+        width: 100%;
+        margin-top: 10px;
+        margin-left: 0;
+    }
+}
+
 /* ERROR */
 
 .error {
@@ -478,4 +516,87 @@ body {
         width: 110px;
         height: 110px;
     }
+}
+/* RANDOM POKEMON SECTION */
+.random-pokemon-section {
+    margin: 30px 0;
+    text-align: center;
+}
+
+.random-pokemon-section h2 {
+    color: var(--text);
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+
+.random-pokemon-grid {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 700px) {
+    .random-pokemon-grid {
+        gap: 15px;
+    }
+
+    .random-pokemon-section h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* DISCOVERED REGIONS SECTION */
+.discovered-regions-section {
+    margin: 20px 0 30px;
+    text-align: center;
+}
+
+.discovered-regions-section h2 {
+    color: var(--text);
+    margin-bottom: 15px;
+    font-size: 1.6rem;
+}
+
+.discovered-regions-list {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.region-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    background: var(--accent);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow:
+        inset 3px 3px 7px var(--dark),
+        inset -3px -3px 7px var(--light);
+    transition: all 0.2s ease;
+}
+
+.region-badge:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        4px 4px 8px var(--dark),
+        -4px -4px 8px var(--light);
+}
+
+/* POKEMON CARD REGION INFO */
+.pokemon-card .pokemon-region {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* Update random pokemon card styling to include region */
+.random-pokemon-section .pokemon-card .pokemon-region {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #666;
 }

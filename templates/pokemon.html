@@ -23,36 +23,6 @@
 <main class="container">
 
 
-    <!-- HEADER -->
-
-    <header class="header">
-
-        <h1>Pokémon Explorer</h1>
-
-        <p>
-            Explora los Pokémon por región
-        </p>
-
-        <!-- REGION NAVIGATION -->
-        <nav class="region-nav">
-            <ul>
-                <li>
-                    <a href="/" class="{% if selected_region is none %}active{% endif %}">Todas las regiones</a>
-                </li>
-                {% for gen in generations %}
-                <li>
-                    <a href="?region={{ gen.id }}" class="{% if selected_region == gen.id %}active{% endif %}">
-                        {{ gen.region }}
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
-        </nav>
-
-    </header>
-
-
-
     <!-- SEARCH -->
 
     <form method="POST" class="search-box">
@@ -67,6 +37,9 @@
         <button type="submit">
             Buscar
         </button>
+        <button type="submit" name="action" value="random" class="random-btn">
+            Pokémon Aleatorio
+        </button>
 
     </form>
 
@@ -79,6 +52,55 @@
         <div class="error">
             {{ error }}
         </div>
+
+    {% endif %}
+
+
+
+    <!-- DISCOVERED REGIONS -->
+    {% if discovered_regions %}
+        <section class="discovered-regions-section">
+            <h2 style="text-align: center; margin-bottom: 20px;">Regiones Desbloqueadas</h2>
+            <div class="discovered-regions-list">
+                {% for region in discovered_regions %}
+                    <span class="region-badge">{{ region }}</span>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <!-- RANDOM POKEMON (shown when button is clicked) -->
+
+    {% if show_random and random_pokemons %}
+
+        <section class="random-pokemon-section">
+            <h2 style="text-align: center; margin-bottom: 30px;">Pokémon Descubiertos (Función Aleatoria)</h2>
+            <div class="random-pokemon-grid">
+                {% for pokemon in random_pokemons %}
+                    <a
+                        href="?id={{ pokemon.id }}"
+                        class="pokemon-card"
+                    >
+                        <span class="card-number">
+                            #{{ "%03d"|format(pokemon.id) }}
+                        </span>
+
+                        <img
+                            src="{{ pokemon.image }}"
+                            alt="{{ pokemon.name }}"
+                            loading="lazy"
+                        >
+
+                        <h3>
+                            {{ pokemon.name|capitalize }}
+                        </h3>
+                        <div class="pokemon-region">
+                            Región: {{ pokemon.region }}
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
 
     {% endif %}
 
@@ -156,64 +178,6 @@
     {% endif %}
 
 
-
-    <!-- POKEMON PANEL -->
-
-    <section class="pokemon-section">
-
-        <div class="section-header">
-
-            <h2>
-                {% if selected_region is not none %}
-                    {% for gen in generations %}
-                        {% if gen.id == selected_region %}
-                            Pokémon de {{ gen.region }}
-                        {% endif %}
-                    {% endfor %}
-                {% else %}
-                    Todos los Pokémon
-                {% endif %}
-            </h2>
-
-            <span>
-                {{ pokemon_list|length }} Pokémon
-            </span>
-
-        </div>
-
-
-        <div class="pokemon-grid">
-
-            {% for item in pokemon_list %}
-
-                <a
-                    href="?id={{ item.id }}{% if selected_region is not none %}&region={{ selected_region }}{% endif %}"
-                    class="pokemon-card"
-                >
-
-                    <span class="card-number">
-                        #{{ "%03d"|format(item.id) }}
-                    </span>
-
-
-                    <img
-                        src="{{ item.image }}"
-                        alt="{{ item.name }}"
-                        loading="lazy"
-                    >
-
-
-                    <h3>
-                        {{ item.name|capitalize }}
-                    </h3>
-
-                </a>
-
-            {% endfor %}
-
-        </div>
-
-    </section>
 
 
 </main>
