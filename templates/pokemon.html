@@ -135,12 +135,14 @@
                         {% endif %}
 
 
-                        <a
-                            href="{{ url_for('search_random') }}"
-                            class="btn-random"
-                        >
-                            Buscar 3 al azar
-                        </a>
+                        <div id="search-random-container">
+                            <button id="search-random-btn" class="btn-random">
+                                Buscar 3 al azar
+                            </button>
+                            <div id="search-random-loading" class="loading" style="display:none;">
+                                <span>Cargando...</span>
+                            </div>
+                        </div>
 
                         <button
                             id="theme-toggle"
@@ -387,6 +389,18 @@
             } else {
                 localStorage.setItem('theme', 'light');
             }
+        });
+
+        // Search random button loading state
+        document.getElementById('search-random-btn').addEventListener('click', function() {
+            const btn = this;
+            const loading = document.getElementById('search-random-loading');
+            btn.style.display = 'none';
+            loading.style.display = 'inline-flex';
+            // Allow UI to update then navigate
+            setTimeout(() => {
+                window.location.href = "{{ url_for('search_random') }}";
+            }, 100); // small delay
         });
     </script>
 </body>

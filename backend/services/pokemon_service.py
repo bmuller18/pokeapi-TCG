@@ -15,19 +15,21 @@ def get_pokemon_by_id(pokemon_id):
     return response.json()
 
 
-def get_random_pokemon_ids(count=3):
+def get_random_pokemon_ids(count=3, max_id=None):
     """Get random Pokémon IDs by first getting the total count"""
-    # Get total count of Pokémon
-    count_url = f"{BASE_URL}?limit=0"
-    count_response = requests.get(count_url, timeout=10)
-    count_response.raise_for_status()
-    total_count = count_response.json()["count"]
+    if max_id is None:
+        # Get total count of Pokémon
+        count_url = f"{BASE_URL}?limit=0"
+        count_response = requests.get(count_url, timeout=10)
+        count_response.raise_for_status()
+        total_count = count_response.json()["count"]
+        max_id = total_count
 
     # Generate random IDs (making sure they're within valid range)
     random_ids = []
     for _ in range(count):
-        # Pokémon IDs start at 1, so we use randint(1, total_count)
-        random_ids.append(random.randint(1, total_count))
+        # Pokémon IDs start at 1, so we use randint(1, max_id)
+        random_ids.append(random.randint(1, max_id))
 
     return random_ids
 

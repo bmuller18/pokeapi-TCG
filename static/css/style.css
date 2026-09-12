@@ -225,13 +225,11 @@ a {
     align-items: center;
     gap: 6px;
     padding: 10px 18px;
-    background: var(--accent);
     color: #10161b;
     text-decoration: none;
     font-weight: bold;
     border-radius: 25px;
     transition: 0.2s ease;
-    box-shadow: var(--shadow);
     font-size: 0.9rem;
 }
 
@@ -244,29 +242,76 @@ a {
 }
 
 /* =========================================================
-   THEME TOGGLE BUTTON
+   LOADING STATE
    ========================================================= */
 
-.btn-theme {
-    display: inline-flex;
+.loading {
+    display: none; /* hidden by default */
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: var(--surface);
-    color: var(--text);
-    border: 2px solid var(--muted);
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    gap: 6px;
+    padding: 10px 18px;
+    background: var(--accent);
+    color: #10161b;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 25px;
+    transition: 0.2s ease;
     box-shadow: var(--shadow);
+    font-size: 0.9rem;
 }
 
-.btn-theme:hover {
-    background: var(--muted);
-    color: var(--light);
-    transform: scale(1.1);
+/* =========================================================
+   RANDOM BUTTON
+   ========================================================= */
+
+   .btn-random {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 10px 18px;
+
+    background: var(--accent);
+    color: #10161b;
+
+    text-decoration: none;
+    font-weight: bold;
+
+    border: none;
+    outline: none;
+    border-radius: 25px;
+
+    font-size: 0.9rem;
+
+    box-shadow:
+        6px 6px 12px var(--dark),
+        -6px -6px 12px var(--light);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+/* Hover */
+
+.btn-random:hover {
+    background: var(--accent);
+    color: #10161b;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        8px 8px 16px var(--dark),
+        -8px -8px 16px var(--light);
+}
+
+.btn-random:active {
+    transform: translateY(1px);
+
+    box-shadow:
+        inset 4px 4px 8px var(--dark),
+        inset -4px -4px 8px var(--light);
 }
 
 /* =========================================================

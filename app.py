@@ -178,8 +178,8 @@ def search_random():
         flash('Supabase not configured', 'error')
         return redirect(request.referrer or url_for('index'))
     try:
-        # get 3 random ids
-        ids = get_random_pokemon_ids(3)
+        # get 3 random ids up to 1025
+        ids = get_random_pokemon_ids(3, max_id=1025)
         stored = 0
         for pid in ids:
             pokemon_data = get_pokemon_by_id(pid)
