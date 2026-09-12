@@ -3,7 +3,7 @@ import time
 import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from backend.services.pokemon_service import get_random_pokemon_ids, get_pokemon_by_id
+from backend.services.pokemon_service import get_pokemon_by_id
 
 # Load environment variables
 load_dotenv()
@@ -21,22 +21,39 @@ def init_supabase():
         return None
 
 def store_pokemon_data(supabase: Client, pokemon_data):
-    """Store or update the complete Pokemon data in Supabase."""
+    """Store or update the complete Pokemon data in Supabase, incrementing count on duplicate."""
     try:
         pokemon_id = pokemon_data["id"]
         # Construct the official artwork URL as used elsewhere
         image_url = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon_id}.png"
-        # Prepare the record to upsert
-        record = {
-            "id": pokemon_id,
-            "name": pokemon_data["name"],
-            "image": image_url,
-            "api_response": pokemon_data  # Store the entire JSON response
-        }
-        # Upsert based on id ( Pokemon ID )
-        response = supabase.table('pokemon').upsert(record, on_conflict='id').execute()
-        # Success log
-        print(f"\n✅  Stored/updated Pokémon id={pokemon_id} ({pokemon_data['name']}) in Supabase.")
+
+        # First, try to get the current record to see if it exists
+        existing = supabase.table('pokemon').select('count').eq('id', pokemon_id).execute()
+
+        if existing.data and len(existing.data) > 0:
+            # Record exists, increment count
+            current_count = existing.data[0].get('count', 0)
+            new_count = current_count + 1
+            # Update the count and other fields (in case they changed?)
+            record = {
+                "name": pokemon_data["name"],
+                "image": image_url,
+                "api_response": pokemon_data,
+                "count": new_count
+            }
+            supabase.table('pokemon').update(record).eq('id', pokemon_id).execute()
+            print(f"\n✅  Updated Pokémon id={pokemon_id} ({pokemon_data['name']}) count to {new_count} in Supabase.")
+        else:
+            # New record, set count to 1
+            record = {
+                "id": pokemon_id,
+                "name": pokemon_data["name"],
+                "image": image_url,
+                "api_response": pokemon_data,
+                "count": 1
+            }
+            supabase.table('pokemon').insert(record).execute()
+            print(f"\n✅  Inserted new Pokémon id={pokemon_id} ({pokemon_data['name']}) with count=1 in Supabase.")
     except Exception as e:
         # Print the error for debugging
         print(f"\n⚠️  Error al almacenar en Supabase: {e}")
@@ -118,7 +135,7 @@ def main():
                 # Supabase not configured; inform user but continue
                 print("\nℹ️  Supabase no configurado (falta SUPABASE_URL o SUPABASE_KEY en .env).")
                 print("   Los datos se muestran arriba pero no se almacenan.")
-                print("   Para almacenar, configure .env y asegúrese de que la columna 'api_response' exista.\n")
+                print("   Para almacenar, configure .env y asegúrese de que la columna 'api_response' y 'count' existan.\n")
         else:
             print("No se pudo obtener el pokemon despues de varios intentos")
     except Exception as e:

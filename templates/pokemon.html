@@ -1,8 +1,12 @@
+```html
 <!DOCTYPE html>
+
 <html lang="es">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Pokémon Explorer</title>
@@ -11,11 +15,16 @@
         rel="stylesheet"
         href="{{ url_for('static', filename='css/style.css') }}"
     >
+
 </head>
+
 
 <body>
 
     <div class="app">
+
+
+        <!-- SIDEBAR -->
 
         <aside class="sidebar">
 
@@ -23,158 +32,362 @@
                 POKÉDEX
             </div>
 
+
             <div class="regions">
 
                 <h3>REGIONES</h3>
 
-                <a href="#" class="region active">
-                    <span class="region-name">Kanto</span>
-                    <span class="region-range">#001 - #151</span>
-                </a>
+                {% for slug, info in regions.items() %}
 
-                <a href="#" class="region">
-                    <span class="region-name">Johto</span>
-                    <span class="region-range">#152 - #251</span>
-                </a>
+                    {% set is_active = (active_region == slug) %}
 
-                <a href="#" class="region">
-                    <span class="region-name">Hoenn</span>
-                    <span class="region-range">#252 - #386</span>
-                </a>
+                    <a
+                        href="{{ url_for('region', slug=slug) }}"
+                        class="region {% if is_active %}active{% endif %}"
+                    >
 
-                <!-- resto de regiones -->
+                        <span class="region-name">
+                            {{ info.name }}
+                        </span>
+
+                        {% if info.start is not none and info.end is not none %}
+
+                            <span class="region-range">
+                                #{{ "%03d"|format(info.start) }}
+                                -
+                                #{{ "%03d"|format(info.end) }}
+                            </span>
+
+                        {% else %}
+
+                            <span class="region-range">
+                                —
+                            </span>
+
+                        {% endif %}
+
+                    </a>
+
+                {% endfor %}
 
             </div>
 
         </aside>
 
+
+
+        <!-- MAIN CONTENT -->
+
         <main class="main-content">
 
-            <!-- contenido Pokémon -->
+
+            <!-- FLASH MESSAGES -->
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+                {% if messages %}
+
+                    {% for category, message in messages %}
+
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+
+
+            <!-- HEADER -->
+
+            <div class="header">
+
+                <div class="header-content">
+
+                    <div>
+
+                        <p class="subtitle">
+                            Tu Pokédex personal
+                        </p>
+
+                        <h1>
+                            Pokémon Explorer
+                        </h1>
+
+                        <p class="description">
+                            Explora y gestiona tu colección de Pokémon almacenados
+                        </p>
+
+                    </div>
+
+
+                    <div class="header-actions">
+
+                        {% if total_count is not none %}
+
+                            <span class="total-count">
+                                Total Pokémon: {{ total_count }}
+                            </span>
+
+                        {% endif %}
+
+
+                        <a
+                            href="{{ url_for('search_random') }}"
+                            class="btn-random"
+                        >
+                            Buscar 3 al azar
+                        </a>
+
+                        <button
+                            id="theme-toggle"
+                            class="btn-theme"
+                            title="Cambiar tema claro/oscuro"
+                        >
+                            🌓
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- POKEMON LIST -->
+
+            {% if pokemon_list %}
+
+                <div class="pokemon-grid">
+
+                    {% for pokemon in pokemon_list %}
+
+
+                        <!-- POKEMON CARD -->
+
+                        <a
+                            href="{{ url_for('pokemon.pokemon_detail', pokemon_id=pokemon.id) }}"
+                            class="pokemon-card"
+                        >
+
+
+                            <!-- NUMBER -->
+
+                            <span class="pokemon-number">
+
+                                #{{ "%03d"|format(pokemon.id) }}
+
+                            </span>
+
+
+
+                            <!-- COUNT -->
+
+                            <span class="pokemon-count">
+
+                                {{ pokemon.count }}
+
+                            </span>
+
+
+
+                            <!-- IMAGE -->
+
+                            <div class="pokemon-image">
+
+                                <img
+                                    src="{{ pokemon.image }}"
+                                    alt="{{ pokemon.name }}"
+                                >
+
+                            </div>
+
+
+
+                            <!-- INFORMATION -->
+
+                            <div class="pokemon-info">
+
+
+                                <!-- NAME -->
+
+                                <h2>
+
+                                    {{ pokemon.name|capitalize }}
+
+                                </h2>
+
+
+
+                                <!-- TYPES -->
+
+                                <div class="types">
+
+                                    {% for type in pokemon.types %}
+
+                                        <span class="type">
+
+                                            {{ type|capitalize }}
+
+                                        </span>
+
+                                    {% endfor %}
+
+                                </div>
+
+
+
+                                <!-- PHYSICAL INFO -->
+
+                                <div class="physical-info">
+
+
+                                    <div>
+
+                                        <span>
+                                            Altura
+                                        </span>
+
+                                        <strong>
+
+                                            {{ pokemon.height / 10 }} m
+
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <span>
+                                            Peso
+                                        </span>
+
+                                        <strong>
+
+                                            {{ pokemon.weight / 10 }} kg
+
+                                        </strong>
+
+                                    </div>
+
+
+                                </div>
+
+
+
+                                <!-- STATS -->
+
+                                <div class="stats">
+
+                                    <h3>
+                                        Estadísticas
+                                    </h3>
+
+
+                                    <div class="stat">
+
+                                        <span>
+                                            HP
+                                        </span>
+
+                                        <strong>
+
+                                            {{ pokemon.hp }}
+
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="stat">
+
+                                        <span>
+                                            Ataque
+                                        </span>
+
+                                        <strong>
+
+                                            {{ pokemon.attack }}
+
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="stat">
+
+                                        <span>
+                                            Velocidad
+                                        </span>
+
+                                        <strong>
+
+                                            {{ pokemon.speed }}
+
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                            </div>
+
+
+                        </a>
+
+
+                    {% endfor %}
+
+                </div>
+
+
+            {% else %}
+
+
+                <!-- EMPTY STATE -->
+
+                <div class="error">
+
+                    No tienes Pokémon almacenados en esta región.
+
+                </div>
+
+
+            {% endif %}
+
 
         </main>
 
     </div>
 
-    <main class="container">
+    <script>
+        // Theme toggle functionality
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const rootElement = document.documentElement;
 
-        <!-- HEADER -->
+        // Check for saved theme preference or use system preference
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        <header class="header">
+        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+            rootElement.classList.add('dark');
+        }
 
-            <div>
-                <p class="subtitle">POKÉDEX</p>
-
-                <h1>Pokémon Explorer</h1>
-
-                <p class="description">
-                    Mis Pokémon almacenados
-                </p>
-            </div>
-
-        </header>
-
-        {% if pokemon_list %}
-            {% for pokemon in pokemon_list %}
-            <!-- POKEMON CARD -->
-            <section class="pokemon-card">
-
-                <!-- IMAGE -->
-                <div class="pokemon-image">
-                    <span class="pokemon-number">
-                        #{{ "%03d"|format(pokemon.id) }}
-                    </span>
-
-                    <img
-                        src="{{ pokemon.image }}"
-                        alt="{{ pokemon.name }}"
-                    >
-                </div>
-
-                <!-- INFORMATION -->
-                <div class="pokemon-info">
-                    <h2>
-                        {{ pokemon.name|capitalize }}
-                    </h2>
-
-                    <!-- TYPES -->
-                    <div class="types">
-                        {% for type in pokemon.types %}
-                            <span class="type">
-                                {{ type|capitalize }}
-                            </span>
-                        {% endfor %}
-                    </div>
-
-                    <!-- PHYSICAL -->
-                    <div class="physical-info">
-                        <div>
-                            <span>Altura</span>
-                            <strong>
-                                {{ pokemon.height / 10 }} m
-                            </strong>
-                        </div>
-                        <div>
-                            <span>Peso</span>
-                            <strong>
-                                {{ pokemon.weight / 10 }} kg
-                            </strong>
-                        </div>
-                    </div>
-
-                    <!-- STATS -->
-                    <div class="stats">
-                        <h3>Estadísticas</h3>
-
-                        <div class="stat">
-                            <div class="stat-header">
-                                <span>HP</span>
-                                <strong>
-                                    {{ pokemon.hp }}
-                                </strong>
-                            </div>
-                            <div class="stat-bar">
-                                <div class="stat-value hp"
-                                     style="width: {{ pokemon.hp }}%;"></div>
-                            </div>
-                        </div>
-
-                        <div class="stat">
-                            <div class="stat-header">
-                                <span>Ataque</span>
-                                <strong>
-                                    {{ pokemon.attack }}
-                                </strong>
-                            </div>
-                            <div class="stat-bar">
-                                <div class="stat-value attack"
-                                     style="width: {{ pokemon.attack }}%;"></div>
-                            </div>
-                        </div>
-
-                        <div class="stat">
-                            <div class="stat-header">
-                                <span>Velocidad</span>
-                                <strong>
-                                    {{ pokemon.speed }}
-                                </strong>
-                            </div>
-                            <div class="stat-bar">
-                                <div class="stat-value speed"
-                                     style="width: {{ pokemon.speed }}%;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            {% endfor %}
-        {% else %}
-            <div class="error">
-                No hay Pokémon almacenados aún. Ejecuta <code>buscar_carta.py</code> para guardar algunos.
-            </div>
-        {% endif %}
-
-    </main>
-
+        themeToggleBtn.addEventListener('click', () => {
+            rootElement.classList.toggle('dark');
+            // Save preference
+            if (rootElement.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ pokemon.name|capitalize }} - Pokémon Explorer</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+    <div class="app">
+
+        <!-- SIDEBAR (same as index) -->
+
+        <aside class="sidebar">
+
+            <div class="logo">
+                POKÉDEX
+            </div>
+
+
+            <div class="regions">
+
+                <h3>REGIONES</h3>
+
+                {% for slug, info in regions.items() %}
+
+                    {% set is_active = (active_region == slug) %}
+
+                    <a
+                        href="{{ url_for('region', slug=slug) }}"
+                        class="region {% if is_active %}active{% endif %}"
+                    >
+
+                        <span class="region-name">
+                            {{ info.name }}
+                        </span>
+
+                        {% if info.start is not none and info.end is not none %}
+
+                            <span class="region-range">
+                                #{{ "%03d"|format(info.start) }}
+                                -
+                                #{{ "%03d"|format(info.end) }}
+                            </span>
+
+                        {% else %}
+
+                            <span class="region-range">
+                                —
+                            </span>
+
+                        {% endif %}
+
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        </aside>
+
+
+
+        <!-- MAIN CONTENT -->
+
+        <main class="main-content">
+
+
+            <!-- HEADER -->
+
+            <div class="header">
+
+                <div class="header-content">
+
+                    <div>
+
+                        <p class="subtitle">
+                            Tu Pokédex personal
+                        </p>
+
+                        <h1>
+                            Pokémon Explorer
+                        </h1>
+
+                        <p class="description">
+                            Explora y gestiona tu colección de Pokémon almacenados
+                        </p>
+
+                    </div>
+
+
+                    <div class="header-actions">
+
+                        <a
+                            href="{{ url_for('index') }}"
+                            class="btn-random"
+                        >
+                            ← Volver al listado
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- POKEMON DETAIL -->
+
+            {% if pokemon %}
+
+                <div class="pokemon-detail-container">
+
+                    <!-- NUMBER AND COUNT -->
+
+                    <span class="pokemon-number">
+                        #{{ "%03d"|format(pokemon.id) }}
+                    </span>
+
+                    <span class="pokemon-count">
+                        {{ pokemon.count }}
+                    </span>
+
+
+
+                    <!-- IMAGE -->
+
+                    <div class="pokemon-image">
+                        <img
+                            src="{{ pokemon.image }}"
+                            alt="{{ pokemon.name }}"
+                        >
+                    </div>
+
+
+
+                    <!-- INFORMATION -->
+
+                    <div class="pokemon-info">
+
+                        <!-- NAME -->
+
+                        <h2>
+                            {{ pokemon.name|capitalize }}
+                        </h2>
+
+
+
+                        <!-- TYPES -->
+
+                        <div class="types">
+                            {% for type in pokemon.api_response.types %}
+                                <span class="type">
+                                    {{ type.type.name|capitalize }}
+                                </span>
+                            {% endfor %}
+                        </div>
+
+
+
+                        <!-- PHYSICAL INFO -->
+
+                        <div class="physical-info">
+
+
+                            <div>
+                                <span>
+                                    Altura
+                                </span>
+
+                                <strong>
+                                    {{ (pokemon.api_response.height / 10)|float }} m
+                                </strong>
+                            </div>
+
+
+                            <div>
+                                <span>
+                                    Peso
+                                </span>
+
+                                <strong>
+                                    {{ (pokemon.api_response.weight / 10)|float }} kg
+                                </strong>
+                            </div>
+
+
+                        </div>
+
+
+
+                        <!-- STATS -->
+
+                        <div class="stats">
+
+                            <h3>
+                                Estadísticas
+                            </h3>
+
+                            <!-- We'll display a few key stats: HP, Attack, Defense, Sp. Atk, Sp. Def, Speed -->
+                            {% set stats = pokemon.api_response.stats %}
+
+                            <div class="stat-grid">
+                                {% for stat in stats %}
+                                    <div class="stat-item">
+                                        <span class="stat-label">
+                                            {{ stat.stat.name|replace('-', ' ')|title }}
+                                        </span>
+                                        <strong class="stat-value">
+                                            {{ stat.base_stat }}
+                                        </strong>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- ABILITIES (optional) -->
+
+                        {% if pokemon.api_response.abilities %}
+                            <div class="abilities">
+                                <h3>Habilidades</h3>
+                                <div class="ability-list">
+                                    {% for ability in pokemon.api_response.abilities %}
+                                        <span class="ability">
+                                            {{ ability.ability.name|replace('-', ' ')|title }}
+                                            {% if ability.is_hidden %} (Oculta){% endif %}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <!-- NOT FOUND -->
+
+                <div class="error">
+                    Pokémon no encontrado.
+                </div>
+
+            {% endif %}
+
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>
