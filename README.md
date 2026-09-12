@@ -1,74 +1,84 @@
-# Pokemon TCG Explorer (Simplified CLI Version)
+# Pokemon TCG Explorer (Flask Version)
 
-This is a simplified command-line tool that fetches random Pokemon data from the PokeAPI and can store tracking information in a Supabase database.
+Esta aplicación Flask muestra los Pokémon que tienes almacenados en tu base de datos Supabase.
 
-## Current Functionality
+## Funcionalidad
 
-When you run `buscar_carta.py`:
-1. Fetches a random Pokemon from the PokeAPI
-2. Shows only the Pokemon name in the terminal (bash)
-3. Optionally stores tracking data in Supabase (if configured)
+- Lee todos los registros de la tabla `pokemon` en Supabase.
+- Para cada registro, extrae los siguientes campos (usando la columna `api_response` que contiene el JSON completo de la PokeAPI):
+  - `id`
+  - `name`
+  - `height` (decímetros, convertido a metros en la plantilla)
+  - `weight` (hectogramos, convertido a kg en la plantilla)
+  - `types` (lista de tipos)
+  - `hp` (puntos de salud)
+  - `attack` (ataque)
+  - `speed` (velocidad)
+- Muestra una tarjeta para cada Pokémon con su imagen, nombre, tipos, altura, peso y estadísticas (HP, Ataque, Velocidad) incluyendo barras de progreso.
+- Si no hay Pokémon almacenados, muestra un mensaje indicando que ejecutar `buscar_carta.py` para guardar algunos.
 
-## Features
+## Requisitos
 
-- **Random Pokemon Selection**: Uses PokeAPI to get a random Pokemon
-- **Terminal Output**: Prints only the Pokemon name to stdout
-- **Supabase Tracking** (Optional): 
-  - Tracks how many times each Pokemon has appeared
-  - Uses a counter in the database that increments on duplicates
-  - Stores Pokemon ID, name, image URL, appearance count, and timestamp
+- Python 3.x
+- Paquetes listados en `requirements.txt`
+- Una base de datos Supabase con una tabla `pokemon` que al menos tenga las columnas:
+  - `id` (integer, primary key)
+  - `name` (text)
+  - `image` (text)
+  - `api_response` (jsonb) - contiene el JSON completo de la PokeAPI
+  - Opcionalmente: `count`, `created_at`
 
-## Setup
+## Configuración
 
-### 1. Configure Supabase
-Create a `.env` file in the project root with:
-```
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_KEY=your_supabase_anon_key
-```
+1. Copia tus credenciales de Supabase a un archivo `.env` en la raíz del proyecto:
+   ```
+   SUPABASE_URL=tu_url_de_supabase
+   SUPABASE_KEY=tu_anon_key_de_supabase
+   ```
 
-### 2. Database Setup
-Run the setup script to verify your Supabase connection and get table creation instructions:
+2. Asegúrate de que la tabla `pokemon` exista y tenga la columna `api_response`. Si no existe, ejecuta esta SQL una vez en el editor SQL de tu proyecto Supabase:
+   ```sql
+   ALTER TABLE public.pokemon 
+   ADD COLUMN IF NOT EXISTS api_response JSONB;
+   ```
+
+3. (Opcional) Para almacenar Pokémon en la base de datos, ejecuta el script CLI:
+   ```bash
+   . venv/bin/activate && python buscar_carta.py
+   ```
+   Este script obtiene un Pokémon aleatorio de la PokeAPI, muestra su JSON completo en la terminal y lo almacena/actualiza en Supabase.
+
+## Uso
+
 ```bash
-. venv/bin/activate && python setup_supabase_flask.py
+. venv/bin/activate && python app.py
 ```
 
-The script will tell you exactly how to create the required table. You need a table named `pokemon` with these columns:
-- `id` (integer, primary key) - Pokemon ID from PokeAPI
-- `name` (text) - Pokemon name
-- `image` (text) - URL to official artwork
-- `count` (integer, default: 1) - Tracks appearances (increments on duplicates)
-- `created_at` (timestamp with timezone, default: now())
+Luego abre tu navegador en `http://localhost:5000` (o `http://127.0.0.1:5000`).
 
-### 3. Install Dependencies
-```bash
-. venv/bin/activate && pip install -r requirements.txt
+## Estructura del proyecto
+
+```
+pokeapi/
+├─ app.py                     # ← Aplicación Flask principal
+├─ buscar_carta.py            # ← Script CLI para obtener y almacenar Pokémon (opcional)
+├─ requirements.txt           # ← Dependencias: flask, requests, supabase, python-dotenv
+├─ .env                       # ← Credenciales de Supabase
+├─ templates/
+│   └─ pokemon.html           # ← Plantilla HTML que muestra los Pokémon almacenados
+├─ static/
+│   └─ css/
+│       └─ style.css          # ← Hoja de estilos proporcionada por el usuario
+└─ backend/
+   └─ services/
+      ├─ pokemon_service.py   # ← Servicio para interactuar con la PokeAPI
+      └─ __init__.py
 ```
 
-## Usage
+## Notas
 
-```bash
-. venv/bin/activate && python buscar_carta.py
-```
+- La aplicación **no** se conecta a la PokeAPI en tiempo de ejecución (excepto posiblemente al usar `buscar_carta.py`). Solo muestra los datos ya almacenados en Supabase.
+- Si algún registro tiene `api_response` nulo o incompleto, la aplicación mostrará valores predeterminados (0 o listas vacías) para evitar errores.
+- El CSS proporcionado por el usuario ya está integrado y da una apariencia moderna y responsiva.
 
-Example output:
-```
-pikachu
-```
-
-Each time you run the script, it will show a random Pokemon name. If you have Supabase configured correctly, it will also:
-- Insert new Pokemon records with count = 1
-- Increment the count column when the same Pokemon appears again
-
-## Files
-
-- `buscar_carta.py` - Main script: fetches random Pokemon, shows name, optionally stores in Supabase
-- `setup_supabase_flask.py` - Helper script to verify Supabase connection and table setup
-- `backend/services/pokemon_service.py` - Service layer for Pokemon API interactions
-- `requirements.txt` - Python dependencies
-
-## Notes
-
-- The Supabase storage is optional - the script will work without it (just showing the Pokemon name)
-- Storage errors are ignored silently to ensure the main function (showing Pokemon name) always works
-- The count feature requires the `count` column to exist in your Supabase table
+¡Disfruta explorando tu Pokédex personal! 🚀
