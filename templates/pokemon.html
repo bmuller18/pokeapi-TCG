@@ -152,6 +152,45 @@
                             🌓
                         </button>
 
+                        <div class="user-actions">
+
+                            {% if session.get('user_id') %}
+                        
+                                <div class="user-info">
+                                    <span class="user-icon">👤</span>
+                        
+                                    <span class="user-email">
+                                        {{ session.get('email') }}
+                                    </span>
+                                </div>
+                        
+                                <a
+                                    href="{{ url_for('logout') }}"
+                                    class="btn-auth btn-logout"
+                                >
+                                    Cerrar sesión
+                                </a>
+                        
+                            {% else %}
+                        
+                                <a
+                                    href="{{ url_for('login') }}"
+                                    class="btn-auth"
+                                >
+                                    Iniciar sesión
+                                </a>
+                        
+                                <a
+                                    href="{{ url_for('register') }}"
+                                    class="btn-auth btn-register"
+                                >
+                                    Crear cuenta
+                                </a>
+                        
+                            {% endif %}
+                        
+                        </div>
+
                     </div>
 
                 </div>

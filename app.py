@@ -1,21 +1,9 @@
 from flask import Flask, render_template, request, url_for, redirect, flash, Blueprint
 from backend.services.pokemon_service import get_pokemon_by_id, get_random_pokemon_ids
-import os
-from dotenv import load_dotenv
-from supabase import create_client, Client
 import json
+from backend.config import get_supabase_client, FLASK_SECRET_KEY
 
-load_dotenv()
 
-def get_supabase_client():
-    url = os.getenv('SUPABASE_URL')
-    key = os.getenv('SUPABASE_KEY')
-    if not url or not key:
-        return None
-    try:
-        return create_client(url, key)
-    except Exception:
-        return None
 
 def fetch_pokemon(filters=None):
     """Fetch pokemon from Supabase with optional filters.
@@ -125,7 +113,7 @@ def pokemon_detail(pokemon_id):
     return render_template('pokemon_detail.html', pokemon=pokemon, regions=REGIONS, active_region=None)
 
 app = Flask(__name__)
-app.secret_key = 'pokeapi-explorer-secret-key-change-in-production'
+app.secret_key = FLASK_SECRET_KEY
 
 # Register blueprints
 app.register_blueprint(pokemon_bp)
@@ -149,6 +137,128 @@ def index():
     pokemon_list = fetch_pokemon()
     total_count = get_pokemon_count()
     return render_template('pokemon.html', pokemon_list=pokemon_list, regions=REGIONS, active_region=None, total_count=total_count)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+
+    if request.method == 'GET':
+        return render_template('register.html')
+
+    email = request.form.get('email', '').strip()
+    password = request.form.get('password', '')
+    password_confirm = request.form.get('password_confirm', '')
+
+    if not email or not password:
+        flash('Completa todos los campos.', 'error')
+        return redirect(url_for('register'))
+
+    if password != password_confirm:
+        flash('Las contraseñas no coinciden.', 'error')
+        return redirect(url_for('register'))
+
+    if len(password) < 6:
+        flash('La contraseña debe tener al menos 6 caracteres.', 'error')
+        return redirect(url_for('register'))
+
+    supabase = get_supabase_client()
+
+    if not supabase:
+        flash('Supabase no está configurado.', 'error')
+        return redirect(url_for('register'))
+
+    try:
+
+        response = supabase.auth.sign_up({
+            'email': email,
+            'password': password
+        })
+
+        if response.user:
+            flash(
+                'Cuenta creada correctamente. Revisa tu email para confirmar la cuenta.',
+                'success'
+            )
+            return redirect(url_for('login'))
+
+        flash('No se pudo crear la cuenta.', 'error')
+        return redirect(url_for('register'))
+
+    except Exception as e:
+
+        print(f'Error registering user: {e}')
+
+        flash(
+            'No se pudo crear la cuenta. Comprueba el email y la contraseña.',
+            'error'
+        )
+
+        return redirect(url_for('register'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+
+    if request.method == 'GET':
+        return render_template('login.html')
+
+    email = request.form.get('email', '').strip()
+    password = request.form.get('password', '')
+
+    if not email or not password:
+        flash('Completa todos los campos.', 'error')
+        return redirect(url_for('login'))
+
+    supabase = get_supabase_client()
+
+    if not supabase:
+        flash('Supabase no está configurado.', 'error')
+        return redirect(url_for('login'))
+
+    try:
+
+        response = supabase.auth.sign_in_with_password({
+            'email': email,
+            'password': password
+        })
+
+        if response.user and response.session:
+
+            session['user_id'] = str(response.user.id)
+            session['email'] = response.user.email
+
+            flash('Sesión iniciada correctamente.', 'success')
+
+            return redirect(url_for('index'))
+
+        flash('No se pudo iniciar sesión.', 'error')
+        return redirect(url_for('login'))
+
+    except Exception as e:
+
+        print(f'Error logging in: {e}')
+
+        flash(
+            'Email o contraseña incorrectos.',
+            'error'
+        )
+
+        return redirect(url_for('login'))
+
+@app.route('/logout')
+def logout():
+
+    supabase = get_supabase_client()
+
+    try:
+        if supabase:
+            supabase.auth.sign_out()
+    except Exception as e:
+        print(f'Error signing out: {e}')
+
+    session.clear()
+
+    flash('Sesión cerrada correctamente.', 'success')
+
+    return redirect(url_for('index'))
 
 @app.route('/region/<slug>')
 def region(slug):
