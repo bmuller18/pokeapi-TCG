@@ -1,6 +1,4 @@
-```html
 <!DOCTYPE html>
-
 <html lang="es">
 
 <head>
@@ -53,9 +51,11 @@
                         {% if info.start is not none and info.end is not none %}
 
                             <span class="region-range">
+
                                 #{{ "%03d"|format(info.start) }}
                                 -
                                 #{{ "%03d"|format(info.end) }}
+
                             </span>
 
                         {% else %}
@@ -124,6 +124,7 @@
                     </div>
 
 
+
                     <div class="header-actions">
 
                         {% if total_count is not none %}
@@ -135,14 +136,27 @@
                         {% endif %}
 
 
+
                         <div id="search-random-container">
-                            <button id="search-random-btn" class="btn-random">
+
+                            <button
+                                id="search-random-btn"
+                                class="btn-random"
+                            >
                                 Buscar 3 al azar
                             </button>
-                            <div id="search-random-loading" class="loading" style="display:none;">
+
+                            <div
+                                id="search-random-loading"
+                                class="loading"
+                                style="display:none;"
+                            >
                                 <span>Cargando...</span>
                             </div>
+
                         </div>
+
+
 
                         <button
                             id="theme-toggle"
@@ -152,43 +166,51 @@
                             🌓
                         </button>
 
+
+
+                        <!-- USER ACTIONS -->
+
                         <div class="user-actions">
 
                             {% if session.get('user_id') %}
-                        
+
                                 <div class="user-info">
-                                    <span class="user-icon">👤</span>
-                        
+
+                                    <span class="user-icon">
+                                        👤
+                                    </span>
+
                                     <span class="user-email">
                                         {{ session.get('email') }}
                                     </span>
+
                                 </div>
-                        
+
                                 <a
                                     href="{{ url_for('logout') }}"
                                     class="btn-auth btn-logout"
                                 >
                                     Cerrar sesión
                                 </a>
-                        
+
                             {% else %}
-                        
+
                                 <a
                                     href="{{ url_for('login') }}"
                                     class="btn-auth"
                                 >
                                     Iniciar sesión
                                 </a>
-                        
+
                                 <a
                                     href="{{ url_for('register') }}"
                                     class="btn-auth btn-register"
                                 >
                                     Crear cuenta
                                 </a>
-                        
+
                             {% endif %}
-                        
+
                         </div>
 
                     </div>
@@ -210,177 +232,192 @@
 
                         <!-- POKEMON CARD -->
 
-                        <a
-                            href="{{ url_for('pokemon.pokemon_detail', pokemon_id=pokemon.id) }}"
-                            class="pokemon-card"
-                        >
+                        <div class="pokemon-card">
 
 
-                            <!-- NUMBER -->
+                            <!-- LINK TO POKEMON DETAIL -->
 
-                            <span class="pokemon-number">
-
-                                #{{ "%03d"|format(pokemon.id) }}
-
-                            </span>
-
+                            <a
+                                href="{{ url_for('pokemon.pokemon_detail', pokemon_id=pokemon.id) }}"
+                                class="pokemon-card-link"
+                            >
 
 
-                            <!-- COUNT -->
+                                <!-- NUMBER -->
 
-                            <span class="pokemon-count">
+                                <span class="pokemon-number">
 
-                                {{ pokemon.count }}
+                                    #{{ "%03d"|format(pokemon.id) }}
 
-                            </span>
+                                </span>
 
 
 
-                            <!-- IMAGE -->
+                                <!-- COUNT -->
 
-                            <div class="pokemon-image">
+                                <span class="pokemon-count">
 
-                                <img
-                                    src="{{ pokemon.image }}"
-                                    alt="{{ pokemon.name }}"
+                                    {{ pokemon.count }}
+
+                                </span>
+
+
+
+                                <!-- IMAGE -->
+
+                                <div class="pokemon-image">
+
+                                    <img
+                                        src="{{ pokemon.image }}"
+                                        alt="{{ pokemon.name }}"
+                                    >
+
+                                </div>
+
+
+
+                                <!-- INFORMATION -->
+
+                                <div class="pokemon-info">
+
+
+                                    <!-- NAME -->
+
+                                    <h2>
+                                        {{ pokemon.name|capitalize }}
+                                    </h2>
+
+
+
+                                    <!-- TYPES -->
+
+                                    <div class="types">
+
+                                        {% for type in pokemon.types %}
+
+                                            <span class="type">
+                                                {{ type|capitalize }}
+                                            </span>
+
+                                        {% endfor %}
+
+                                    </div>
+
+
+
+                                    <!-- PHYSICAL INFO -->
+
+                                    <div class="physical-info">
+
+
+                                        <div>
+
+                                            <span>
+                                                Altura
+                                            </span>
+
+                                            <strong>
+                                                {{ pokemon.height / 10 }} m
+                                            </strong>
+
+                                        </div>
+
+
+                                        <div>
+
+                                            <span>
+                                                Peso
+                                            </span>
+
+                                            <strong>
+                                                {{ pokemon.weight / 10 }} kg
+                                            </strong>
+
+                                        </div>
+
+
+                                    </div>
+
+
+
+                                    <!-- STATS -->
+
+                                    <div class="stats">
+
+                                        <h3>
+                                            Estadísticas
+                                        </h3>
+
+
+                                        <div class="stat">
+
+                                            <span>
+                                                HP
+                                            </span>
+
+                                            <strong>
+                                                {{ pokemon.hp }}
+                                            </strong>
+
+                                        </div>
+
+
+                                        <div class="stat">
+
+                                            <span>
+                                                Ataque
+                                            </span>
+
+                                            <strong>
+                                                {{ pokemon.attack }}
+                                            </strong>
+
+                                        </div>
+
+
+                                        <div class="stat">
+
+                                            <span>
+                                                Velocidad
+                                            </span>
+
+                                            <strong>
+                                                {{ pokemon.speed }}
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+
+                                </div>
+
+                            </a>
+
+
+                            <!-- ADD TO COLLECTION -->
+
+                            {% if session.get('user_id') %}
+
+                                <form
+                                    action="{{ url_for('add_to_collection', pokemon_id=pokemon.id) }}"
+                                    method="POST"
+                                    class="collection-form"
                                 >
 
-                            </div>
+                                    <button
+                                        type="submit"
+                                        class="btn-collection"
+                                    >
+                                        ＋ Agregar a mi colección
+                                    </button>
 
+                                </form>
 
+                            {% endif %}
 
-                            <!-- INFORMATION -->
 
-                            <div class="pokemon-info">
-
-
-                                <!-- NAME -->
-
-                                <h2>
-
-                                    {{ pokemon.name|capitalize }}
-
-                                </h2>
-
-
-
-                                <!-- TYPES -->
-
-                                <div class="types">
-
-                                    {% for type in pokemon.types %}
-
-                                        <span class="type">
-
-                                            {{ type|capitalize }}
-
-                                        </span>
-
-                                    {% endfor %}
-
-                                </div>
-
-
-
-                                <!-- PHYSICAL INFO -->
-
-                                <div class="physical-info">
-
-
-                                    <div>
-
-                                        <span>
-                                            Altura
-                                        </span>
-
-                                        <strong>
-
-                                            {{ pokemon.height / 10 }} m
-
-                                        </strong>
-
-                                    </div>
-
-
-                                    <div>
-
-                                        <span>
-                                            Peso
-                                        </span>
-
-                                        <strong>
-
-                                            {{ pokemon.weight / 10 }} kg
-
-                                        </strong>
-
-                                    </div>
-
-
-                                </div>
-
-
-
-                                <!-- STATS -->
-
-                                <div class="stats">
-
-                                    <h3>
-                                        Estadísticas
-                                    </h3>
-
-
-                                    <div class="stat">
-
-                                        <span>
-                                            HP
-                                        </span>
-
-                                        <strong>
-
-                                            {{ pokemon.hp }}
-
-                                        </strong>
-
-                                    </div>
-
-
-                                    <div class="stat">
-
-                                        <span>
-                                            Ataque
-                                        </span>
-
-                                        <strong>
-
-                                            {{ pokemon.attack }}
-
-                                        </strong>
-
-                                    </div>
-
-
-                                    <div class="stat">
-
-                                        <span>
-                                            Velocidad
-                                        </span>
-
-                                        <strong>
-
-                                            {{ pokemon.speed }}
-
-                                        </strong>
-
-                                    </div>
-
-                                </div>
-
-
-                            </div>
-
-
-                        </a>
+                        </div>
 
 
                     {% endfor %}
@@ -407,40 +444,102 @@
 
     </div>
 
+
+
     <script>
+
         // Theme toggle functionality
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const rootElement = document.documentElement;
+
+        const themeToggleBtn =
+            document.getElementById('theme-toggle');
+
+        const rootElement =
+            document.documentElement;
+
 
         // Check for saved theme preference or use system preference
-        const savedTheme = localStorage.getItem('theme');
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+        const savedTheme =
+            localStorage.getItem('theme');
+
+        const systemPrefersDark =
+            window.matchMedia(
+                '(prefers-color-scheme: dark)'
+            ).matches;
+
+
+        if (
+            savedTheme === 'dark' ||
+            (!savedTheme && systemPrefersDark)
+        ) {
+
             rootElement.classList.add('dark');
+
         }
 
+
         themeToggleBtn.addEventListener('click', () => {
+
             rootElement.classList.toggle('dark');
+
+
             // Save preference
-            if (rootElement.classList.contains('dark')) {
-                localStorage.setItem('theme', 'dark');
+
+            if (
+                rootElement.classList.contains('dark')
+            ) {
+
+                localStorage.setItem(
+                    'theme',
+                    'dark'
+                );
+
             } else {
-                localStorage.setItem('theme', 'light');
+
+                localStorage.setItem(
+                    'theme',
+                    'light'
+                );
+
             }
+
         });
 
+
+
         // Search random button loading state
-        document.getElementById('search-random-btn').addEventListener('click', function() {
-            const btn = this;
-            const loading = document.getElementById('search-random-loading');
-            btn.style.display = 'none';
-            loading.style.display = 'inline-flex';
-            // Allow UI to update then navigate
-            setTimeout(() => {
-                window.location.href = "{{ url_for('search_random') }}";
-            }, 100); // small delay
-        });
+
+        document
+            .getElementById('search-random-btn')
+            .addEventListener('click', function() {
+
+                const btn = this;
+
+                const loading =
+                    document.getElementById(
+                        'search-random-loading'
+                    );
+
+
+                btn.style.display = 'none';
+
+                loading.style.display = 'inline-flex';
+
+
+                // Allow UI to update then navigate
+
+                setTimeout(() => {
+
+                    window.location.href =
+                        "{{ url_for('search_random') }}";
+
+                }, 100);
+
+            });
+
     </script>
+
+
 </body>
+
 </html>

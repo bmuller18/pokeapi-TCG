@@ -1,7 +1,20 @@
-from flask import Flask, render_template, request, url_for, redirect, flash, Blueprint
+from flask import (
+    Flask,
+    render_template,
+    request,
+    url_for,
+    redirect,
+    flash,
+    Blueprint,
+    session
+)
 from backend.services.pokemon_service import get_pokemon_by_id, get_random_pokemon_ids
 import json
 from backend.config import get_supabase_client, FLASK_SECRET_KEY
+from backend.services.user_pokemon_service import (
+    add_pokemon_to_collection
+)
+
 
 
 
@@ -170,7 +183,10 @@ def register():
 
         response = supabase.auth.sign_up({
             'email': email,
-            'password': password
+            'password': password,
+            'options': {
+                'email_redirect_to': 'http://127.0.0.1:5000/login'
+            }
         })
 
         if response.user:
@@ -184,15 +200,13 @@ def register():
         return redirect(url_for('register'))
 
     except Exception as e:
+        print("=" * 60)
+        print("ERROR REAL DE SUPABASE AL REGISTRAR:")
+        print(repr(e))
+        print("=" * 60)
 
-        print(f'Error registering user: {e}')
-
-        flash(
-            'No se pudo crear la cuenta. Comprueba el email y la contraseña.',
-            'error'
-        )
-
-        return redirect(url_for('register'))
+        flash(f"Error: {e}", "error")
+        return render_template("register.html")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -233,14 +247,12 @@ def login():
         return redirect(url_for('login'))
 
     except Exception as e:
+        print("=" * 60)
+        print("ERROR REAL DE LOGIN:")
+        print(repr(e))
+        print("=" * 60)
 
-        print(f'Error logging in: {e}')
-
-        flash(
-            'Email o contraseña incorrectos.',
-            'error'
-        )
-
+        flash(f'Error: {e}', 'error')
         return redirect(url_for('login'))
 
 @app.route('/logout')
@@ -259,6 +271,37 @@ def logout():
     flash('Sesión cerrada correctamente.', 'success')
 
     return redirect(url_for('index'))
+
+
+@app.route('/collection/add/<int:pokemon_id>', methods=['POST'])
+def add_to_collection(pokemon_id):
+
+    user_id = session.get('user_id')
+
+    if not user_id:
+        flash(
+            'Debes iniciar sesión para agregar Pokémon a tu colección.',
+            'error'
+        )
+
+        return redirect(url_for(
+            'login'
+        ))
+
+    success, message = add_pokemon_to_collection(
+        user_id,
+        pokemon_id
+    )
+
+    flash(
+        message,
+        'success' if success else 'error'
+    )
+
+    return redirect(
+        request.referrer or url_for('index')
+    )
+
 
 @app.route('/region/<slug>')
 def region(slug):
