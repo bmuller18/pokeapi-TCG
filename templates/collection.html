@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mi colección | Pokémon Explorer</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body>
+
+<div class="app">
+
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            POKÉDEX
+        </div>
+
+        <div class="sidebar-subtitle">
+            POKÉMON EXPLORER
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a
+                href="{{ url_for('index') }}"
+                class="region"
+            >
+                <span class="region-name">
+                    Pokédex
+                </span>
+
+                <span class="region-range">
+                    Todos
+                </span>
+            </a>
+
+            <a
+                href="{{ url_for('collection') }}"
+                class="region active"
+            >
+                <span class="region-name">
+                    Mi colección
+                </span>
+
+                <span class="region-range">
+                    {{ collection|length }} Pokémon
+                </span>
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="main-header">
+
+            <div>
+                <p class="eyebrow">
+                    MI COLECCIÓN
+                </p>
+
+                <h1>
+                    Mis Pokémon
+                </h1>
+
+                <p class="description">
+                    Pokémon que has agregado a tu colección.
+                </p>
+            </div>
+
+
+            <div class="header-actions">
+
+                <div class="user-info">
+                    <span class="user-icon">👤</span>
+
+                    <span class="user-email">
+                        {{ session.get('email') }}
+                    </span>
+                </div>
+
+                <a
+                    href="{{ url_for('logout') }}"
+                    class="btn-auth btn-logout"
+                >
+                    Cerrar sesión
+                </a>
+
+            </div>
+
+        </header>
+
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+
+            {% if messages %}
+
+                <div class="flash-container">
+
+                    {% for category, message in messages %}
+
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        {% if collection %}
+
+            <div class="pokemon-grid">
+
+                {% for pokemon in collection %}
+
+                    <a
+                        href="{{ url_for(
+                            'pokemon.pokemon_detail',
+                            pokemon_id=pokemon.id
+                        ) }}"
+                        class="pokemon-card"
+                    >
+
+                        <div class="pokemon-number">
+                            #{{ "%03d"|format(pokemon.id) }}
+                        </div>
+
+                        <div class="pokemon-image-container">
+
+                            <img
+                                src="{{ pokemon.image }}"
+                                alt="{{ pokemon.name }}"
+                                class="pokemon-image"
+                            >
+
+                        </div>
+
+                        <div class="pokemon-name">
+                            {{ pokemon.name|capitalize }}
+                        </div>
+
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-collection">
+
+                <div class="empty-icon">
+                    📦
+                </div>
+
+                <h2>
+                    Tu colección está vacía
+                </h2>
+
+                <p>
+                    Explora el Pokédex y agrega tus Pokémon favoritos.
+                </p>
+
+                <a
+                    href="{{ url_for('index') }}"
+                    class="auth-button"
+                >
+                    Explorar Pokémon
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </main>
+
+</div>
+
+
+<script>
+
+    const rootElement = document.documentElement;
+
+    const savedTheme = localStorage.getItem('theme');
+
+    const systemPrefersDark =
+        window.matchMedia(
+            '(prefers-color-scheme: dark)'
+        ).matches;
+
+    if (
+        savedTheme === 'dark' ||
+        (!savedTheme && systemPrefersDark)
+    ) {
+        rootElement.classList.add('dark');
+    }
+
+</script>
+
+</body>
+</html>

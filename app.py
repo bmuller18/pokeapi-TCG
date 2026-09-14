@@ -12,7 +12,8 @@ from backend.services.pokemon_service import get_pokemon_by_id, get_random_pokem
 import json
 from backend.config import get_supabase_client, FLASK_SECRET_KEY
 from backend.services.user_pokemon_service import (
-    add_pokemon_to_collection
+    add_pokemon_to_collection,
+    get_user_collection
 )
 from functools import wraps
 
@@ -130,6 +131,13 @@ def pokemon_detail(pokemon_id):
 app = Flask(__name__)
 app.secret_key = FLASK_SECRET_KEY
 
+@app.context_processor
+def inject_user():
+    return {
+        'current_user_email': session.get('email'),
+        'current_user_id': session.get('user_id')
+    }
+
 def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
@@ -173,7 +181,8 @@ def index():
         pokemon_list=pokemon_list,
         regions=REGIONS,
         active_region=None,
-        total_count=total_count
+        total_count=total_count,
+        user_email=session.get('email')
     )
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -261,12 +270,11 @@ def login():
         })
 
         if response.user and response.session:
-
             session['user_id'] = str(response.user.id)
             session['email'] = response.user.email
+            session['access_token'] = response.session.access_token
 
             flash('Sesión iniciada correctamente.', 'success')
-
             return redirect(url_for('index'))
 
         flash('No se pudo iniciar sesión.', 'error')
@@ -313,6 +321,7 @@ def auth_callback():
 
         session['user_id'] = str(response.user.id)
         session['email'] = response.user.email
+        session['access_token'] = response.session.access_token
 
         flash(
             'Cuenta confirmada correctamente.',
@@ -351,15 +360,50 @@ def logout():
 
     return redirect(url_for('index'))
 
+@app.route('/collection')
+@login_required
+def collection():
 
-@app.route('/collection/add/<int:pokemon_id>', methods=['POST'])
+    user_id = session['user_id']
+    access_token = session.get('access_token')
+
+    if not access_token:
+        flash(
+            'Tu sesión ha expirado. Inicia sesión nuevamente.',
+            'error'
+        )
+
+        return redirect(url_for('login'))
+
+    collection = get_user_collection(
+        user_id,
+        access_token
+    )
+
+    return render_template(
+        'collection.html',
+        collection=collection
+    )
+
+@app.route('/collection/add/<int:pokemon_id>',methods=['POST'])
 @login_required
 def add_to_collection(pokemon_id):
+
     user_id = session['user_id']
+    access_token = session.get('access_token')
+
+    if not access_token:
+        flash(
+            'Tu sesión ha expirado. Inicia sesión nuevamente.',
+            'error'
+        )
+
+        return redirect(url_for('login'))
 
     success, message = add_pokemon_to_collection(
         user_id,
-        pokemon_id
+        pokemon_id,
+        access_token
     )
 
     flash(
@@ -391,7 +435,14 @@ def region(slug):
         active = slug
     # For hisui (historical) we have no ID range; we will show none unless we have specific IDs? We'll just show empty list.
     total_count = get_pokemon_count()
-    return render_template('pokemon.html', pokemon_list=pokemon_list, regions=REGIONS, active_region=active, total_count=total_count)
+    return render_template(
+        'pokemon.html',
+        pokemon_list=pokemon_list,
+        regions=REGIONS,
+        active_region=active,
+        total_count=total_count,
+        user_email=session.get('email')
+    )
 
 @app.route('/search-random')
 @login_required
