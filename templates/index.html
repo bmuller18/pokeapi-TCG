@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pokémon Explorer</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body>
+
+    <div class="auth-page">
+
+        <div class="auth-card">
+
+            <div class="auth-logo">
+                POKÉDEX
+            </div>
+
+            <p class="auth-subtitle">
+                POKÉMON EXPLORER
+            </p>
+
+            <h1>
+                Tu colección Pokémon
+            </h1>
+
+            <p class="auth-description">
+                Explora Pokémon, descubre información detallada
+                y administra tu colección personal.
+            </p>
+
+            <div class="auth-actions">
+
+                <a
+                    href="{{ url_for('login') }}"
+                    class="auth-button"
+                >
+                    Iniciar sesión
+                </a>
+
+                <a
+                    href="{{ url_for('register') }}"
+                    class="auth-button secondary"
+                >
+                    Crear cuenta
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        const rootElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme');
+
+        const systemPrefersDark =
+            window.matchMedia(
+                '(prefers-color-scheme: dark)'
+            ).matches;
+
+        if (
+            savedTheme === 'dark' ||
+            (!savedTheme && systemPrefersDark)
+        ) {
+            rootElement.classList.add('dark');
+        }
+
+    </script>
+
+</body>
+</html>

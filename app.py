@@ -14,6 +14,8 @@ from backend.config import get_supabase_client, FLASK_SECRET_KEY
 from backend.services.user_pokemon_service import (
     add_pokemon_to_collection
 )
+from functools import wraps
+
 
 
 
@@ -128,6 +130,20 @@ def pokemon_detail(pokemon_id):
 app = Flask(__name__)
 app.secret_key = FLASK_SECRET_KEY
 
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if 'user_id' not in session:
+            flash(
+                'Debes iniciar sesión para acceder a esta página.',
+                'error'
+            )
+            return redirect(url_for('login'))
+
+        return view(*args, **kwargs)
+
+    return wrapped_view
+
 # Register blueprints
 app.register_blueprint(pokemon_bp)
 
@@ -146,10 +162,19 @@ REGIONS = {
 
 @app.route('/')
 def index():
-    # Show all pokemon
+    if 'user_id' not in session:
+        return render_template('index.html')
+
     pokemon_list = fetch_pokemon()
     total_count = get_pokemon_count()
-    return render_template('pokemon.html', pokemon_list=pokemon_list, regions=REGIONS, active_region=None, total_count=total_count)
+
+    return render_template(
+        'pokemon.html',
+        pokemon_list=pokemon_list,
+        regions=REGIONS,
+        active_region=None,
+        total_count=total_count
+    )
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -182,10 +207,11 @@ def register():
     try:
 
         response = supabase.auth.sign_up({
-            'email': email,
-            'password': password,
-            'options': {
-                'email_redirect_to': 'http://127.0.0.1:5000/login'
+        'email': email,
+        'password': password,
+        'options': {
+            'email_redirect_to':
+                'http://127.0.0.1:5000/auth/callback'
             }
         })
 
@@ -255,6 +281,59 @@ def login():
         flash(f'Error: {e}', 'error')
         return redirect(url_for('login'))
 
+@app.route('/auth/callback')
+def auth_callback():
+    code = request.args.get('code')
+
+    if not code:
+        flash(
+            'No se recibió el código de autenticación.',
+            'error'
+        )
+        return redirect(url_for('login'))
+
+    supabase = get_supabase_client()
+
+    if not supabase:
+        flash(
+            'Supabase no está configurado.',
+            'error'
+        )
+        return redirect(url_for('login'))
+
+    try:
+        response = supabase.auth.exchange_code_for_session(code)
+
+        if not response.user:
+            flash(
+                'No se pudo obtener el usuario autenticado.',
+                'error'
+            )
+            return redirect(url_for('login'))
+
+        session['user_id'] = str(response.user.id)
+        session['email'] = response.user.email
+
+        flash(
+            'Cuenta confirmada correctamente.',
+            'success'
+        )
+
+        return redirect(url_for('index'))
+
+    except Exception as e:
+        print("=" * 60)
+        print("ERROR REAL EN AUTH CALLBACK:")
+        print(repr(e))
+        print("=" * 60)
+
+        flash(
+            'No se pudo completar la autenticación.',
+            'error'
+        )
+
+        return redirect(url_for('login'))
+
 @app.route('/logout')
 def logout():
 
@@ -274,19 +353,9 @@ def logout():
 
 
 @app.route('/collection/add/<int:pokemon_id>', methods=['POST'])
+@login_required
 def add_to_collection(pokemon_id):
-
-    user_id = session.get('user_id')
-
-    if not user_id:
-        flash(
-            'Debes iniciar sesión para agregar Pokémon a tu colección.',
-            'error'
-        )
-
-        return redirect(url_for(
-            'login'
-        ))
+    user_id = session['user_id']
 
     success, message = add_pokemon_to_collection(
         user_id,
@@ -302,8 +371,8 @@ def add_to_collection(pokemon_id):
         request.referrer or url_for('index')
     )
 
-
 @app.route('/region/<slug>')
+@login_required
 def region(slug):
     region_info = REGIONS.get(slug)
     if not region_info:
@@ -325,6 +394,7 @@ def region(slug):
     return render_template('pokemon.html', pokemon_list=pokemon_list, regions=REGIONS, active_region=active, total_count=total_count)
 
 @app.route('/search-random')
+@login_required
 def search_random():
     supabase = get_supabase_client()
     if not supabase:
